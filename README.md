@@ -8,3 +8,10 @@ Stretch goal: The project aims to compare different models against each other to
 # Development
 ## Project setup
 Download https://public.madd.bfs.admin.ch/ch.zip and unzip to folder /data. The files are too big for a free github repo.
+
+## Features
+* Gebäudetype
+* Gebäudejahr
+* Aktualisierungsjahr (der Heizung)
+* Fläche (Gebäudefläche * Anzahl Stockwerke)
+* PLZ => one hot encoding, erst als Ausbaustufe
