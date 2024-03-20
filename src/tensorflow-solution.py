@@ -43,10 +43,10 @@ model.compile(optimizer='adam',
 
 model.summary()
 
-history = model.fit(X_train_scaled, y_train_encoded, epochs=6, validation_split=0.1, verbose=1)
+history = model.fit(X_train_scaled, y_train_encoded, epochs=6, validation_split=0.1, verbose=1, batch_size=1000)
 
 # Evaluate the model on the test set
-test_loss, test_acc = model.evaluate(X_test_scaled, y_test_encoded, verbose=2)
+test_loss, test_acc = model.evaluate(X_test_scaled, y_test_encoded, verbose=2, batch_size=1000)
 
 print('\nTest accuracy:', test_acc)
 
