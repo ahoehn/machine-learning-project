@@ -10,7 +10,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 def create_dataframe():
     engine = create_engine('sqlite:///../data/data.sqlite')
 
-    query_training_data = """select DPLZ4 as ZIP,
+    query_training_data = """select DPLZ4 as PLZ,
                  GBAUJ,
                  GASTW,
                  GAREA * GASTW as FLAECHE,
@@ -31,27 +31,39 @@ def create_dataframe():
             AND e.EGID = b.EGID
             AND (GSTAT NOT in ('1005', '1007', '1008'))"""
 
-    df = pd.read_sql_query(query_training_data, engine)
+    query_training_data2 = """select DPLZ4 as ZIP,
+       GAREA * GASTW as AREA,
+       GWAERDATH1 as UPDATE_DATE,
+       c1.CODTXTLD   as ENERGY_SOURCE_TEXT
+       from building b,
+            entrance e,
+            (select CECODID, CODTXTLD from codes WHERE CMERKM = 'GENH1') c1
+                where GWAERDATH1 != ''
+                  AND GENH1 NOT IN ('', '7500', '7598', '7599', '7550')
+                  AND e.EGID = b.EGID
+                  AND b.GENH1 = c1.CECODID"""
+
+    df = pd.read_sql_query(query_training_data2, engine)
 
     df['ZIP'] = pd.to_numeric(df['ZIP'], errors='coerce')
-    df['GBAUJ'] = pd.to_numeric(df['GBAUJ'], errors='coerce')
-    df['FLAECHE'] = pd.to_numeric(df['FLAECHE'], errors='coerce')
-    df['GENH1'] = pd.to_numeric(df['GENH1'], errors='coerce')
-    df['GASTW'] = pd.to_numeric(df['GASTW'], errors='coerce')
-    df['GWAERDATH1'] = pd.to_datetime(df['GWAERDATH1'], format='%Y-%m-%d', errors='coerce')
-    df['YEAR_OF_REPLACEMENT'] = df['GWAERDATH1'].dt.year
+    df['AREA'] = pd.to_numeric(df['AREA'], errors='coerce')
+    df['UPDATE_YEAR'] = df['UPDATE_DATE'].str.split('-').str[0]
+    df = df.drop(columns='UPDATE_DATE')
+    df.dropna(subset=['UPDATE_YEAR'], inplace=True)
+    # drop 0 values
+    df = df.replace(0, np.nan)
+    df = df.dropna()
 
-    genh1_counts = df['GENH1TXT'].value_counts()
-    print(genh1_counts)
-    # merge categories
+    print(df['ENERGY_SOURCE_TEXT'].value_counts())
+
     category_mapping = {
         'Heizöl': 'Heizöl',
         'Gas': 'Gas',
         'Elektrizität': 'Elektrizität',
-        'Luft': 'Luft',
-        'Erdregister': 'Erdwärme',
-        'Erdwärme (generisch)': 'Erdwärme',
-        'Erdwärmesonde': 'Erdwärme',
+        'Luft': 'Wärmepumpe',
+        'Erdregister': 'Wärmepumpe',
+        'Erdwärme (generisch)': 'Wärmepumpe',
+        'Erdwärmesonde': 'Wärmepumpe',
         'Fernwärme (Hochtemperatur)': 'Fernwärme',
         'Fernwärme (Niedertemperatur)': 'Fernwärme',
         'Fernwärme (generisch)': 'Fernwärme',
@@ -59,21 +71,28 @@ def create_dataframe():
         'Holz (Schnitzel)': 'Holz',
         'Holz (Stückholz)': 'Holz',
         'Holz (generisch)': 'Holz',
-        'Sonne (thermisch)': 'Sonne',
-        'Wasser (Grundwasser, Oberflächenwasser, Abwasser)': 'Wasser'}
-    df['GENH1TXT'] = df['GENH1TXT'].map(category_mapping)
-    print(df['GENH1TXT'].unique())
+        'Sonne (thermisch)': 'Wärmepumpe',
+        'Wasser (Grundwasser, Oberflächenwasser, Abwasser)': 'Wärmepumpe'}
+
+    df['ENERGY_SOURCE_TEXT'] = df['ENERGY_SOURCE_TEXT'].map(category_mapping)
+    print(df['ENERGY_SOURCE_TEXT'].unique())
+    df = pd.get_dummies(df, columns=['ZIP'])
 
     # Convert categories to numeric
     label_encoder = LabelEncoder()
-    df['CATEGORY'] = label_encoder.fit_transform(df['GENH1TXT'])
+
+    df['CATEGORY'] = label_encoder.fit_transform(df['ENERGY_SOURCE_TEXT'])
     label_mappings = {index: label for index, label in enumerate(label_encoder.classes_)}
     print(label_mappings)
+    df = df.drop(columns='ENERGY_SOURCE_TEXT')
 
     category_counts = df['CATEGORY'].value_counts()
     print(category_counts)
 
-    return df, label_mappings
+    df_shuffled = df.sample(frac=1).reset_index(drop=True)
+    print(df.head())
+
+    return df_shuffled, label_mappings
 
 
 def print_metrics_nn(predictions, label_mappings, y_test):
