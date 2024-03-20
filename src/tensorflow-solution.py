@@ -12,16 +12,16 @@ df, label_mappings = create_dataframe()
 # Features and target variable
 X_one_hot = df.filter(like='ZIP')
 X_other = df[['UPDATE_YEAR', 'AREA']]
-# X = pd.concat(df[['YEAR_OF_REPLACEMENT', 'FLAECHE']].values, df.filter(like='PLZ_').values)
+X = pd.concat([X_one_hot, X_other], axis=1)
 y = df['CATEGORY'].values
 
 # Splitting the dataset into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Scale features
-# scaler = StandardScaler()
-# X_train_scaled = scaler.fit_transform(X_train)
-# X_test_scaled = scaler.transform(X_test)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
 # Convert labels to one-hot encoding
 y_train_encoded = to_categorical(y_train)
