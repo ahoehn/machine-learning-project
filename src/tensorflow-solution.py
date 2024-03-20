@@ -55,3 +55,5 @@ predictions = model.predict(X_test_scaled)
 print_metrics_nn(predictions, label_mappings, y_test)
 
 plot_accuracy(history)
+
+model.save('heating-predictions.keras')
