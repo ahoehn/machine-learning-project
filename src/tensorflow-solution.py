@@ -28,9 +28,11 @@ y_train_encoded = to_categorical(y_train)
 y_test_encoded = to_categorical(y_test)
 
 model = Sequential([
-    #     Dense(256, activation='relu', input_shape=(X_train_scaled.shape[1],)),
-    #     Dropout(0.2),
-    Dense(128, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+    Dense(3072, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+    Dropout(0.2),
+    Dense(1024, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+    Dropout(0.2),
+    Dense(256, activation='relu'),
     Dropout(0.2),
     Dense(64, activation='relu'),
     Dropout(0.2),
@@ -43,14 +45,14 @@ model.compile(optimizer='adam',
 
 model.summary()
 
-history = model.fit(X_train_scaled, y_train_encoded, epochs=6, validation_split=0.1, verbose=1, batch_size=1000)
+history = model.fit(X_train_scaled, y_train_encoded, epochs=50, validation_split=0.1, verbose=1, batch_size=500)
 
 # Evaluate the model on the test set
-test_loss, test_acc = model.evaluate(X_test_scaled, y_test_encoded, verbose=2, batch_size=1000)
+test_loss, test_acc = model.evaluate(X_test_scaled, y_test_encoded, verbose=2, batch_size=500)
 
 print('\nTest accuracy:', test_acc)
 
-predictions = model.predict(X_test_scaled)
+predictions = model.predict(X_test_scaled, batch_size=500)
 
 print_metrics_nn(predictions, label_mappings, y_test)
 
