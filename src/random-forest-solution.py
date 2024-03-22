@@ -22,7 +22,7 @@ X = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Initialize the Random Forest classifier
-model = RandomForestClassifier(n_estimators=400, random_state=42, n_jobs=9)
+model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=9)
 
 # Fit the model to the training data
 history = model.fit(X_train, y_train)
@@ -32,4 +32,4 @@ predictions = model.predict(X_test)
 
 print_metrics(predictions, label_mappings, y_test)
 
-dump(model, '../results/random_forest_model.joblib')
+dump(model, '../results/models/random_forest_model.joblib')
