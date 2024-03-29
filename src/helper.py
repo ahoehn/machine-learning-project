@@ -7,41 +7,29 @@ import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
-def create_dataframe():
+def prepare_data(csv_file_path):
     engine = create_engine('sqlite:///../data/data.sqlite')
 
-    query_training_data = """select DPLZ4 as PLZ,
-                 GBAUJ,
-                 GASTW,
-                 GAREA * GASTW as FLAECHE,
-                 GWAERZH1,
-                 w1.CODTXTLD   as GWAERZH1TXT,
-                 GENH1,
-                 c1.CODTXTLD   as GENH1TXT,
-                 GWAERDATH1
-          from building b,
-               entrance e,
-               (select CECODID, CODTXTLD from codes WHERE CMERKM = 'GWAERZH1') w1,
-               (select CECODID, CODTXTLD from codes WHERE CMERKM = 'GENH1') c1
-          WHERE b.GABBJ == ''
-            AND b.GBAUJ != ''
-            AND GENH1 NOT IN ('', '7500', '7598', '7599', '7550')
-            AND b.GWAERZH1 = w1.CECODID
-            AND b.GENH1 = c1.CECODID
-            AND e.EGID = b.EGID
-            AND (GSTAT NOT in ('1005', '1007', '1008'))"""
-
-    query_training_data2 = """select DPLZ4 as ZIP,
+    query_training_data2 = """select 
+        DPLZ4 as ZIP,
        GAREA * GASTW as AREA,
        GWAERDATH1 as UPDATE_DATE,
-       c1.CODTXTLD   as ENERGY_SOURCE_TEXT
-       from building b,
-            entrance e,
-            (select CECODID, CODTXTLD from codes WHERE CMERKM = 'GENH1') c1
-                where GWAERDATH1 != ''
-                  AND GENH1 NOT IN ('', '7500', '7598', '7599', '7550')
-                  AND e.EGID = b.EGID
-                  AND b.GENH1 = c1.CECODID"""
+       c1.CODTXTLD   as ENERGY_SOURCE_TEXT,
+       j.max_median_income as INCOME
+    from building b,
+         entrance e,
+         (select CECODID, CODTXTLD from codes WHERE CMERKM = 'GENH1') c1,
+         (SELECT g.plz, MAX(i.median_income) AS max_median_income
+          FROM gemeinde g
+                   JOIN income i ON g.gemeinde_id = i.gemeinde_id
+          GROUP BY g.plz) j
+    where GWAERDATH1 != ''
+      AND GENH1 NOT IN ('', '7500', '7598', '7599', '7550')
+      AND e.EGID = b.EGID
+      AND b.GENH1 = c1.CECODID
+      AND j.plz = DPLZ4
+      AND GAREA * GASTW  > 0
+    ORDER BY b.EGID"""
 
     df = pd.read_sql_query(query_training_data2, engine)
 
@@ -76,8 +64,19 @@ def create_dataframe():
 
     df['ENERGY_SOURCE_TEXT'] = df['ENERGY_SOURCE_TEXT'].map(category_mapping)
     print(df['ENERGY_SOURCE_TEXT'].unique())
-    df = pd.get_dummies(df, columns=['ZIP'])
 
+    df_shuffled = df.sample(frac=1).reset_index(drop=True)
+    print(df.head())
+    df.to_csv(csv_file_path, index=False)
+
+
+def create_dataframe():
+    csv_file_path = "../data/heating_source.csv"
+    df = pd.read_csv(csv_file_path)
+    print("data imported from ", csv_file_path)
+    print(df.head())
+
+    df = pd.get_dummies(df, columns=['ZIP'])
     # Convert categories to numeric
     label_encoder = LabelEncoder()
 
@@ -89,10 +88,7 @@ def create_dataframe():
     category_counts = df['CATEGORY'].value_counts()
     print(category_counts)
 
-    df_shuffled = df.sample(frac=1).reset_index(drop=True)
-    print(df.head())
-
-    return df_shuffled, label_mappings
+    return df, label_mappings
 
 
 def print_metrics_nn(predictions, label_mappings, y_test):

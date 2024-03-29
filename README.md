@@ -7,11 +7,19 @@ Stretch goal: The project aims to compare different models against each other to
 
 # Development
 ## Project setup
-Download https://public.madd.bfs.admin.ch/ch.zip and unzip to folder /data. The files are too big for a free github repo.
+run tensorflow-solution.py or random-forest-solution.py
 
-## Features
-* Gebäudetype
+## Features used for the model
 * Gebäudejahr
 * Aktualisierungsjahr (der Heizung)
 * Fläche (Gebäudefläche * Anzahl Stockwerke)
 * PLZ => one hot encoding, erst als Ausbaustufe
+
+## Original Sources
+Download https://public.madd.bfs.admin.ch/ch.zip and unzip to folder /data. The files are too big for a free github repo.
+Other sources are:
+- https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz_2056.csv.zip
+- https://www.estv.admin.ch/dam/estv/de/dokumente/estv/steuerstatistiken/direkte-bundessteuer/statistik-dbst-np-kennzahlen-ohne-2020.xlsx.download.xlsx/statistik-dbst-np-kennzahlen-ohne-2020.xlsx
+rund data import-and-prepare-data.py which creates a new heating_source.csv
+
+
