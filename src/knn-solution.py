@@ -1,6 +1,7 @@
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report, confusion_matrix
 import pandas as pd
 from joblib import dump
 
@@ -22,18 +23,14 @@ X = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Initialize the Random Forest classifier
-#model = RandomForestClassifier(oob_score=True, n_estimators=3000, verbose = 1, max_depth=30, min_samples_split=2, max_features='sqrt', n_jobs=-1)
-model = RandomForestClassifier(oob_score=True, n_estimators=3000, verbose = 1, n_jobs=-1)
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(X_train, y_train)
 
-
-# Fit the model to the training data
-history = model.fit(X_train, y_train)
-
-# Predict the categories of the test set
-predictions = model.predict(X_test)
+# Step 5: Evaluate the model
+predictions = knn.predict(X_test)
+print(confusion_matrix(y_test, predictions))
+print(classification_report(y_test, predictions))
 
 print_metrics(predictions, label_mappings, y_test)
 
-print("OOB Score: ", model.oob_score_)
-
-dump(model, '../results/models/random_forest_model-simple2.joblib')
+dump(knn, '../results/models/knn_model.joblib')

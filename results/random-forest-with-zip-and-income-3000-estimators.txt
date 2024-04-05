@@ -1,0 +1,15 @@
+Classification Report:
+              precision    recall  f1-score   support
+
+Elektrizität       0.58      0.41      0.48     10787
+   Fernwärme       0.80      0.72      0.75     12578
+         Gas       0.73      0.75      0.74     46815
+      Heizöl       0.70      0.77      0.74     64685
+        Holz       0.63      0.51      0.56     18405
+  Wärmepumpe       0.71      0.70      0.70     14392
+
+    accuracy                           0.70    167662
+   macro avg       0.69      0.64      0.66    167662
+weighted avg       0.70      0.70      0.70    167662
+
+OOB Score:  0.703173646980234

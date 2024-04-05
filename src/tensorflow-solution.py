@@ -13,7 +13,7 @@ df, label_mappings = create_dataframe()
 
 # Features and target variable
 X_one_hot = df.filter(like='ZIP')
-X_other = df[['UPDATE_YEAR', 'AREA']]
+X_other = df[['UPDATE_YEAR', 'AREA', 'BUILDING_YEAR', 'INCOME']]
 X = pd.concat([X_one_hot, X_other], axis=1)
 y = df['CATEGORY'].values
 
